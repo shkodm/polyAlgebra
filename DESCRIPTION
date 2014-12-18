@@ -1,0 +1,13 @@
+Package: polyAlgebra
+Type: Package
+Title: implementation of an algebra of multi-variable polynomials
+Version: 1.0
+Date: 2014-10-30
+Author: L Laniewski-Wollk
+Maintainer: L Laniewski-Wollk <llaniewski@meil.pw.edu.pl>
+Description: implementation of an algebra of multi-variable polynomials
+License: GPL
+Depends:
+    gvector
+Suggests:
+    testthat
