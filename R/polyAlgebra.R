@@ -3,7 +3,6 @@
 #' @docType package
 #' @name polyAlgebra-package
 #' @rdname polyAlgebra-package
-#' @useDynLib polyAlgebra
 NULL
 
 pAlg = function(a){
@@ -96,6 +95,16 @@ print.pAlg = function(p)
 	p = aggregate(p)
 	p
 }
+
+"-.pAlg" <- function(p1,p2){
+  if (is.numeric(p1)) p1 = pAlg(p1)
+  if (is.numeric(p2)) p2 = pAlg(p2)
+  p2 = p2 * (-1)
+  p = rbind(p1,p2)
+  p = aggregate(p)
+  p
+}
+
 
 "^.pAlg" <- function(p1,p2){
 	if (is.numeric(p2)) {
@@ -270,5 +279,4 @@ deriv.pAlg = function(obj_, what) {
 	}
 	aggregate(obj_)	
 }
-
 
