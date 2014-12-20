@@ -1,5 +1,7 @@
 
+#' @export
 ToC = function (x, ...) 
+#' @exportMethod
 UseMethod("ToC")
 
 
@@ -44,6 +46,7 @@ ToC_row = function(x,float=TRUE,minimal=1e-10)
 	ret
 }
 
+#' @export
 ToC.pAlg = function(p,float=TRUE, minimal=1e-10)
 {
 	nToC(p, min=minimal,float=float)
@@ -70,12 +73,15 @@ M.val = M.val[M.sel]
 M.PV = M.PV[M.sel]
 
 
+#' @export
 C = function(x,...) {cat(ToC(x,...), sep="");}
 
+#' @export
 is.int = function(x,min=1e-6) {
 	abs(x - round(x)) < min
 }
 
+#' @export
 divisible = function(x,y,min=1e-6) {
 	M.w = outer(x, y, "/")
 	M.h = outer(!is.int(x),is.int(y),"|")

@@ -5,6 +5,7 @@
 #' @rdname polyAlgebra-package
 NULL
 
+#' @export
 pAlg = function(a){
 	if (is.character(a)) {
 		ret = data.frame(.M = 1)
@@ -20,6 +21,7 @@ pAlg = function(a){
 	finish.pAlg(ret)
 }	
 
+#' @export
 scalar = function(v,a){
 	
 	if ("pAlg" %in% class(a)) { a = as.factor(attr(a,"var")) }
@@ -64,6 +66,7 @@ finish.pAlg = function(p) {
 }
 	
 
+#' @export
 rbind.pAlg = function(p1,p2)
 {
 	if (is.null(p1)) return(p2)
@@ -81,6 +84,7 @@ rbind.pAlg = function(p1,p2)
 	finish.pAlg(ret)
 }
 
+#' @export
 print.pAlg = function(p)
 {
 	class(p) = "data.frame";
@@ -88,6 +92,7 @@ print.pAlg = function(p)
 	print(attr(p,"var"))
 }
 
+#' @export
 "+.pAlg" <- function(p1,p2){
   if (is.numeric(p1)) p1 = pAlg(p1)
   if (is.numeric(p2)) p2 = pAlg(p2)
@@ -96,6 +101,7 @@ print.pAlg = function(p)
 	p
 }
 
+#' @export
 "-.pAlg" <- function(p1,p2){
   if (is.numeric(p1)) p1 = pAlg(p1)
   if (is.numeric(p2)) p2 = pAlg(p2)
@@ -106,6 +112,7 @@ print.pAlg = function(p)
 }
 
 
+#' @export
 "^.pAlg" <- function(p1,p2){
 	if (is.numeric(p2)) {
 		p = p1;
@@ -124,6 +131,7 @@ print.pAlg = function(p)
 }
 
 
+#' @export
 "*.pAlg" <- function(p1,p2){
 #	cat("-- *.pAlg -----\n");
   if (is.numeric(p1)) {
@@ -174,9 +182,11 @@ print.pAlg = function(p)
 
 
  
+#' @export
 is.zero.pAlg = function(p) all(p$.M == 0)
 is.zero = function (x, ...) UseMethod("is.zero")
 
+#' @export
 der = function (x, ...) UseMethod("der")
 
 der_row = function(x)
@@ -203,6 +213,7 @@ der_row = function(x)
 	data.frame(ret)
 }
 
+#' @export
 der.pAlg = function(p)
 {
 	class(p) = "data.frame"
@@ -232,8 +243,10 @@ der.character = function (x) {
 }
 
 
+#' @export
 subst = function (obj_, ...) UseMethod("subst")
 
+#' @export
 subst.pAlg = function(obj_, ...) {
 	arg = list(...)
 	if (length(arg) == 0) return(obj_)
@@ -269,6 +282,7 @@ subst.pAlg = function(obj_, ...) {
 }
 
 
+#' @export
 deriv.pAlg = function(obj_, what) {
 	if (!is.character(what)) stop("Can only deriv pAlg and PV with respect to variables given as strings")
 	if (what %in% names(obj_)) {
