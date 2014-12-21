@@ -74,7 +74,17 @@ M.PV = M.PV[M.sel]
 
 
 #' @export
-C = function(x,...) {cat(ToC(x,...), sep="");}
+C = function(x,y,...,eq=" = ",sep) {
+  x = ToC(x,...)
+  if (missing(y)) {
+    if (missing(sep)) sep = "\n"
+    cat(x,sep=sep);
+  } else {
+    if (missing(sep)) sep = ";\n"
+    y = ToC(y,...)
+    cat(paste0(x,eq,y,sep),sep="")
+  }
+}
 
 #' @export
 is.int = function(x,min=1e-6) {
@@ -216,3 +226,10 @@ nToC = function(tab, bracket=FALSE,min=1e-6, second=FALSE, float=TRUE) {
 	}
 	ret
 }
+
+
+
+
+ToC.gvector = function(x) gapply(x, ToC, simplify=TRUE)
+
+
