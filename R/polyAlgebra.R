@@ -36,6 +36,19 @@ scalar = function(v,a){
 }	
 
 
+ToC.numeric = function(x) {as.character(x)}
+
+#' @export
+PV = function(x,...,sep="") {
+  if (is.character(x)) {
+    x = paste(x,...,sep=sep);
+  } else {
+    x = x
+  }
+  new("gvector",vec=lapply(x,pAlg),dim=length(x))
+}
+
+
 aggregate.pAlg = function(p)
 {
 	if (nrow(p) > 0) {
@@ -183,8 +196,16 @@ print.pAlg = function(p)
 
  
 #' @export
-is.zero.pAlg = function(p) all(p$.M == 0)
 is.zero = function (x, ...) UseMethod("is.zero")
+
+#' @export
+is.zero.pAlg = function(p) all(p$.M == 0)
+
+#' @export
+is.zero.numeric = function(p) p == 0
+
+#' @export
+is.zero.gvector = function(x) gapply(x, is.zero, simplify=TRUE)
 
 #' @export
 der = function (x, ...) UseMethod("der")

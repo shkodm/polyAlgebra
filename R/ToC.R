@@ -77,7 +77,7 @@ M.PV = M.PV[M.sel]
 C = function(x,y,...,eq=" = ",sep) {
   x = ToC(x,...)
   if (missing(y)) {
-    if (missing(sep)) sep = "\n"
+    if (missing(sep)) sep = ""
     cat(x,sep=sep);
   } else {
     if (missing(sep)) sep = ";\n"
@@ -230,6 +230,6 @@ nToC = function(tab, bracket=FALSE,min=1e-6, second=FALSE, float=TRUE) {
 
 
 
-ToC.gvector = function(x) gapply(x, ToC, simplify=TRUE)
+ToC.gvector = function(x,...) gapply(x, ToC, ..., simplify=TRUE)
 
 
