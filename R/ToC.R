@@ -229,7 +229,11 @@ nToC = function(tab, bracket=FALSE,min=1e-6, second=FALSE, float=TRUE) {
 
 
 
-
+#' @export
 ToC.gvector = function(x,...) gapply(x, ToC, ..., simplify=TRUE)
+
+#' @export
+ToC.numeric = function(x) {as.character(x)}
+
 
 

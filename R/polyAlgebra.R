@@ -35,9 +35,6 @@ scalar = function(v,a){
 	finish.pAlg(ret)
 }	
 
-
-ToC.numeric = function(x) {as.character(x)}
-
 #' @export
 PV = function(x,...,sep="") {
   if (is.character(x)) {
