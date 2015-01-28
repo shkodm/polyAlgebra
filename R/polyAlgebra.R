@@ -264,6 +264,10 @@ der.character = function (x) {
 #' @export
 subst = function (obj_, ...) UseMethod("subst")
 
+
+#' @export
+subst.gvector = function(x,...) gapply(x, subst, ..., simplify=TRUE)
+
 #' @export
 subst.pAlg = function(obj_, ...) {
 	arg = list(...)

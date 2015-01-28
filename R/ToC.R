@@ -1,7 +1,6 @@
 
 #' @export
 ToC = function (x, ...) 
-#' @exportMethod
 UseMethod("ToC")
 
 
