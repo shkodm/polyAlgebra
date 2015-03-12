@@ -266,7 +266,7 @@ subst = function (obj_, ...) UseMethod("subst")
 
 
 #' @export
-subst.gvector = function(x,...) gapply(x, subst, ..., simplify=TRUE)
+subst.gvector = function(x,...) gapply(x, subst, ..., simplify=FALSE)
 
 #' @export
 subst.pAlg = function(obj_, ...) {
