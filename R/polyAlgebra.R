@@ -316,3 +316,31 @@ deriv.pAlg = function(obj_, what) {
 	aggregate(obj_)	
 }
 
+#' @export
+div.mod = function (x, ...) UseMethod("div.mod")
+
+#' @export
+div.mod.pAlg = function(a,b) {
+  if (! b %in% names(a)) {
+    list(a,pAlg(0))
+  } else {
+  sel = a[,b] > 0
+  if (any(sel)) {
+    if (!all(sel)) {
+      list(a[!sel,], a[sel,] * (pAlg(b)^-1))
+    } else {
+      list(pAlg(0), a * (pAlg(b)^-1))
+    }
+  } else {
+    list(a, pAlg(0))    
+  }
+  }
+}
+
+#' @export
+div.mod.gvector = function(a,b) {
+  ret = gapply(a,div.mod, b)
+  ret1 = lapply(ret@vec,function(x) x[[1]])
+  ret2 = lapply(ret@vec,function(x) x[[2]])
+  list(as.gvector(ret1),as.gvector(ret2))
+}
