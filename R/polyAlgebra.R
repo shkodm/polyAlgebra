@@ -125,14 +125,23 @@ print.pAlg = function(p)
 #' @export
 "^.pAlg" <- function(p1,p2){
 	if (is.numeric(p2)) {
-		p = p1;
-		for (i in names(p1)) {
-			if (i == ".M") {
-				p[,i] = p[,i] ^ p2
-			} else {
-				p[,i] = p[,i] * p2
-			}
-		}
+    if (nrow(p1) == 1) {
+      p=p1
+      for (i in names(p1)) {
+        if (i == ".M") {
+          p[,i] = p[,i] ^ p2
+        } else {
+          p[,i] = p[,i] * p2
+        }
+      }
+    } else {
+      if (p2 >= 0) {
+        p = pAlg(1);
+        for (i in seq_len(p2)) p = p * p1
+      } else {
+        stop("Cannot take a negative power of composite polynomial")
+      }
+    }
 	} else {
 		stop("non numeric power in ^.pAlg")
 	}
