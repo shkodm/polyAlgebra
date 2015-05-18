@@ -273,15 +273,12 @@ der.character = function (x) {
 #' @export
 subst = function (obj_, ...) UseMethod("subst")
 
-
-#' @export
-subst.gvector = function(x,...) gapply(x, subst, ..., simplify=FALSE)
-
 #' @export
 subst.pAlg = function(obj_, ...) {
 	arg = list(...)
 	if (length(arg) == 0) return(obj_)
 	if (is.null(names(arg))) names(arg) = rep("", length(arg))
+  if (nrow(obj_) < 1) return(obj_)
 	sel = names(arg) == ""
 	narg = arg[!sel]
 	for (l in arg[sel]) {
@@ -353,3 +350,37 @@ div.mod.gvector = function(a,b) {
   ret2 = lapply(ret@vec,function(x) x[[2]])
   list(as.gvector(ret1),as.gvector(ret2))
 }
+
+# # ' @export
+# subst.gvector = function(x,...) gapply(x, subst, ..., simplify=FALSE)
+
+
+#' @export
+subst.gvector = function(obj_,...,simplify=TRUE)  {
+  arg = list(...)
+  if (length(arg) == 0) return(obj_)
+  if (is.null(names(arg))) names(arg) = rep("", length(arg))
+  sel = names(arg) == ""
+  narg = arg[!sel]
+  for (l in arg[sel]) {
+    narg = c(narg,l)
+  }
+  arg=narg
+  if (any(names(arg) == "")) stop("All arguments to subst have to be named")
+  if (length(arg) == 0) return(obj_)
+  length(arg)
+  arg = lapply(arg, function(x) if (!inherits(x,"gvector")) V(x) else x)
+  lens = sapply(arg, function(x) prod(dim(x)))
+  if (any(lens < max(lens))) stop("Length of all subsitutions have to be the same")
+  len = max(lens)
+  ret = list()
+  for (i in 1:len) {
+    sub = lapply(arg, function(x) x[[i]])
+    ret = c(ret, lapply(obj_@vec, subst, sub))
+  }
+  if (simplify) if (len == 1) len = NULL
+  ret = new.gvector(ret, c(dim(obj_),len))
+  ret
+}
+
+
