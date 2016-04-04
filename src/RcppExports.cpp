@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // dfToString
 std::string dfToString(NumericMatrix coeff, List lsnames);
-RcppExport SEXP polyAlgebra2_dfToString(SEXP coeffSEXP, SEXP lsnamesSEXP) {
+RcppExport SEXP polyAlgebra_dfToString(SEXP coeffSEXP, SEXP lsnamesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -19,7 +19,7 @@ END_RCPP
 }
 // fastMult
 std::string fastMult(NumericMatrix coeff, List lsnames);
-RcppExport SEXP polyAlgebra2_fastMult(SEXP coeffSEXP, SEXP lsnamesSEXP) {
+RcppExport SEXP polyAlgebra_fastMult(SEXP coeffSEXP, SEXP lsnamesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;

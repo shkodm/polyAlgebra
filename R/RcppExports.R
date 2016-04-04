@@ -2,10 +2,10 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 dfToString <- function(coeff, lsnames) {
-    .Call('polyAlgebra2_dfToString', PACKAGE = 'polyAlgebra2', coeff, lsnames)
+    .Call('polyAlgebra_dfToString', PACKAGE = 'polyAlgebra', coeff, lsnames)
 }
 
 fastMult <- function(coeff, lsnames) {
-    .Call('polyAlgebra2_fastMult', PACKAGE = 'polyAlgebra2', coeff, lsnames)
+    .Call('polyAlgebra_fastMult', PACKAGE = 'polyAlgebra', coeff, lsnames)
 }
 

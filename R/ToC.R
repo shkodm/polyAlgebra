@@ -52,10 +52,11 @@ ToC_row = function(x,float=TRUE,minimal=1e-10)
 # #	oToC(p, minimal=minimal,float=float)
 # }
 
+#' @export
 ToC.pAlg = function(f,float=TRUE,minimal=1e-10)
 {
-  lsnames = as.list(names(a[[1]]))
-  matrixa = a[[1]]
+  lsnames = as.list(names(f[[1]]))
+  matrixa = data.matrix(f[[1]])
   fastMult(matrixa,lsnames)
 }
 oToC = function(p,float=TRUE, minimal=1e-10)
@@ -235,7 +236,13 @@ no.ones = function(tab,min=1e-6) {
 
  
 #' @export
-ToC.gvector = function(x,...) gapply(x, ToC, ..., simplify=TRUE)
+ToC.gvector = function(x,...) 
+#gapply(x, ToC, ..., simplify=TRUE)
+{
+  lsnames = as.list(names(x[[1]]))
+  matrixa = data.matrix(x[[1]])
+  fastMult(matrixa,lsnames)
+}
 
 #' @export
 ToC.numeric = function(x) {as.character(x)}
