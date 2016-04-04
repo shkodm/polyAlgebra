@@ -29,3 +29,7 @@ export(pAlg)
 export(rbind.pAlg)
 export(scalar)
 export(subst)
+
+useDynLib(polyAlgebra)
+exportPattern("^[[:alpha:]]+")
+importFrom(Rcpp, evalCpp)
