@@ -53,16 +53,18 @@ ToC_row = function(x,float=TRUE,minimal=1e-10)
 # }
 
 #' @export
-ToC.pAlg = function(f,float=TRUE,minimal=1e-10)
+ToC.pAlg = function(f,float=TRUE,min=1e-10)
 {
+  f = f[abs(f$.M) > min,,drop=FALSE]
   if (nrow(f) < 1) {
      			ret = "0"
      		}
   else {
     lsnames = as.list(names(f))
     matrixa = data.matrix(f)
-    fastMult(matrixa,lsnames)
+    ret = fastMult(matrixa,lsnames)
   }
+  ret
 }
 oToC = function(p,float=TRUE, minimal=1e-10)
 {
