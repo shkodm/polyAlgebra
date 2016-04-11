@@ -55,7 +55,6 @@ std::string dfToString(NumericMatrix coeff,List lsnames)
 std::string fastMult(NumericMatrix coeff,List lsnames) 
 {
   if (as <std::string> (lsnames[0]) ==".M") return  (as <std::string> (lsnames[1]));
- // some supplementary stuff
   int mdiv_count = 0;
   int divs = -1;
   int eqzero = 0;
