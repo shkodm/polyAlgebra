@@ -62,6 +62,11 @@ ToC.pAlg = function(f,float=TRUE,min=1e-10)
   else {
     lsnames = as.list(names(f))
     matrixa = data.matrix(f)
+    if (lsnames[1] ==".M") 
+      {
+      lsnames = rev(lsnames)
+      matrixa[, c(1, length(lsnames))] <- matrixa[ ,c(length(lsnames),1)]
+    }
     ret = fastMult(matrixa,lsnames)
   }
   ret

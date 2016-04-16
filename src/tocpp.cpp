@@ -4,7 +4,7 @@
 
 #define tostr( x ) static_cast< std::ostringstream & >( \
 ( std::ostringstream() << std::dec << x ) ).str()              
-  
+
 using namespace Rcpp;
 
 // TODO: Add taking number into account (gcd for an array), when generation of sequence
@@ -26,59 +26,101 @@ std::string dfToString(NumericMatrix coeff,List lsnames)
       {
         std::string coff = tostr(coeff(i,j));
         switch (int(coeff(i,j))){
-          case -1:
-            temp = temp + "/" + as<std::string>(lsnames[j]);
-            break;
-          case 0: break;
-          case 1:
-            temp = temp + "*" + as<std::string>(lsnames[j]); 
-            break;
-          case 2:
-            temp = temp + "*" + as<std::string>(lsnames[j]) + "*" + as<std::string>(lsnames[j]);
-            break;
-          default:
-            temp = temp + "*" + "pow(" + as<std::string> (lsnames[j])  + "," + coff + ")";
-            break;
-         }
+        case -1:
+          temp = temp + "/" + as<std::string>(lsnames[j]);
+          break;
+        case 0:
+          // if (lsnames.size() == 2) temp = temp + a;
+          break;
+        case 1:
+          temp = temp + "*" + as<std::string>(lsnames[j]); 
+          break;
+        case 2:
+          temp = temp + "*" + as<std::string>(lsnames[j]) + "*" + as<std::string>(lsnames[j]);
+          break;
+        default:
+          temp = temp + "*" + "pow(" + as<std::string> (lsnames[j])  + "," + coff + ")";
+        break;
+        }
       }
       if (((coeff(i,lsnames.size() - 1)) == 1) && (temp.length() != 1) && (temp.at(1) != '/')) temp.erase(0,2);
       if (((coeff(i,lsnames.size() - 1)) == - 1) && (temp.length() != 2) && (temp.at(2) != '/')) temp.erase(1,2);
       if (res.length() == 0) res = temp;  
       else { if (temp.at(0) == '-') res = res + temp;
-      else res = res + "+" + temp; }
+      else res = res + " + " + temp; }
     }
   }
   return res;
 } 
 
-  // [[Rcpp::export]]
+
+// [[Rcpp::export]]
 std::string fastMult(NumericMatrix coeff,List lsnames) 
 {
-  if (as <std::string> (lsnames[0]) ==".M") return  (as <std::string> (lsnames[1]));
+  NumericMatrix remaind = clone(coeff);
+  
   int mdiv_count = 0;
   int divs = -1;
   int eqzero = 0;
-  int max_ind = -1;
+  int max_ind = 0;
   int temp_it = 0;
-  NumericMatrix remaind = clone(coeff); 
-  //we clone, since normally rcpp types are passed by pointer
+  
+  // Numerical multiplication simplifying part
+  // i'mma lazy to declare new variables, reuse old ones, don't get suprised later
+  
+  for (int divsor = 2; divsor < 60; divsor ++)
+  {
+    temp_it = 0;
+    for (int j = 0 ; j < coeff.nrow(); j ++)
+      if ((int(coeff(j, lsnames.length() - 1)) != 0) && (int((coeff(j, lsnames.length() - 1))) % divsor == 0)) temp_it++;
+    if (temp_it > max_ind) 
+    {
+      max_ind = temp_it;
+      divs = divsor;
+    }
+  }
+  
+  if ((divs != -1) && (max_ind != 1))  
+  {
+    for (int j = 0; j < coeff.nrow(); j++)
+    {
+      if ((int(coeff(j, lsnames.length() - 1)) != 0) && (int((coeff(j, lsnames.length() - 1))) % divs == 0)) 
+      {
+        coeff(j, lsnames.length() - 1) = coeff(j, lsnames.length() - 1) / divs;
+        remaind(j,lsnames.length() - 1) = 0;
+        eqzero++;
+      }
+      else  { 
+        coeff(j, lsnames.length() - 1) == 0;
+        if ((remaind(j,lsnames.length() - 1)) == 0) eqzero++;
+        }
+    }
+    if (eqzero != coeff.nrow()) return tostr(divs) + "*" + "(" + fastMult(coeff,lsnames) + ")" + " + " + fastMult(remaind,lsnames); 
+    else return tostr(divs)+ "*" + "(" + fastMult(coeff,lsnames) + ")";
+  }
+ 
+  eqzero = 0;
+  divs = -1;
+  max_ind = -1;
+  temp_it = 0;
+  // Variable multiplication simplifying part
   for (int i = 0; i < (lsnames.length() - 1) ; i++)
   {
-      int countt = 0;
-      int div_count =0;
-      for (int j = 0; j < coeff.nrow(); j ++)
+    int countt = 0;
+    int div_count =0;
+    for (int j = 0; j < coeff.nrow(); j ++)
+    {
+      if ((coeff(j,i) != 0) && (coeff(j,lsnames.length() - 1) != 0 )) 
       {
-        if ((coeff(j,i) != 0) && (coeff(j,lsnames.length() - 1) != 0 )) 
-        {
-          countt++;
-          if ((coeff(j,i)) < 0) div_count++; 
-        }
+        countt++;
+        if ((coeff(j,i)) < 0) div_count++; 
       }
-      if (countt > temp_it){
-        temp_it = countt;
-        max_ind = i;
-        mdiv_count = div_count;
-      }
+    }
+    if (countt > temp_it){
+      temp_it = countt;
+      max_ind = i;
+      mdiv_count = div_count;
+    }
   }
   if ((2*mdiv_count) != (temp_it)) temp_it = - (2*mdiv_count - temp_it) / abs(2*mdiv_count - temp_it); 
   else temp_it = 1;
@@ -94,8 +136,8 @@ std::string fastMult(NumericMatrix coeff,List lsnames)
       divs = j;
     }
     else{
-     coeff(j,lsnames.length() - 1) = 0;
-     if ((remaind(j,lsnames.length() - 1)) == 0) eqzero++;
+      coeff(j,lsnames.length() - 1) = 0;
+      if ((remaind(j,lsnames.length() - 1)) == 0) eqzero++;
     }
   }
   if (divs_ind == 0) return dfToString(remaind,lsnames); // It should be here
@@ -106,13 +148,13 @@ std::string fastMult(NumericMatrix coeff,List lsnames)
     else return res;
   }
   // TODO: it is dummy, change it!
- if (temp_it < 0) {
+  if (temp_it < 0) {
     if (eqzero != coeff.nrow()) return  ("(" + fastMult(coeff,lsnames) + ")" + "/" + as<std::string>(lsnames[max_ind])  + "+" + fastMult(remaind,lsnames));
     else return "(" + fastMult(coeff,lsnames) + ")/" + as<std::string>(lsnames[max_ind]);
- } 
- else {
- if (eqzero != coeff.nrow()) return as<std::string>(lsnames[max_ind]) + "*" + "(" + fastMult(coeff,lsnames) + ")" + " + " + fastMult(remaind,lsnames); // <- that was working
+  } 
+  else {
+    if (eqzero != coeff.nrow()) return as<std::string>(lsnames[max_ind]) + "*" + "(" + fastMult(coeff,lsnames) + ")" + " + " + fastMult(remaind,lsnames); // <- that was working
     else return as<std::string>(lsnames[max_ind]) + "*" + "(" + fastMult(coeff,lsnames) + ")";
-
+    
   }
- }
+}
