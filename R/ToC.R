@@ -60,12 +60,14 @@ ToC.pAlg = function(f,float=TRUE,min=1e-10)
      			ret = "0"
      		}
   else {
+    f = f[order(abs(f$.M),decreasing=FALSE),,drop=FALSE]
     lsnames = as.list(names(f))
     matrixa = data.matrix(f)
-    if (lsnames[1] ==".M") 
+    if ((length(lsnames) > 1) && (lsnames[length(lsnames) - 1] ==".M")) 
       {
-      lsnames = rev(lsnames)
-      matrixa[, c(1, length(lsnames))] <- matrixa[ ,c(length(lsnames),1)]
+      lsnames[length(lsnames) - 1] = lsnames[length(lsnames)]
+      lsnames[length(lsnames)] = ".M"
+      matrixa[, c(length(lsnames) - 1, length(lsnames))] <- matrixa[ ,c(length(lsnames),length(lsnames) - 1)]
     }
     ret = fastMult(matrixa,lsnames)
   }
