@@ -1,48 +1,58 @@
 
 #' @export
 ToC = function (x, ...) 
-UseMethod("ToC")
+  UseMethod("ToC")
 
+Rugly_order <- function(fi) {
+  
+  f <- subset(fi, (abs(fi[,ncol(fi)]) - 1) > 1e-10)
+  on_f <- subset(fi, (abs(fi[,ncol(fi)]) -1) < 1e-10 )
+  f <- f[order(abs(f[,ncol(f)]),decreasing=FALSE),,drop=FALSE]
+  on_f <- on_f[rev(order(0*abs(on_f[,ncol(on_f)]),decreasing=FALSE)),,drop=FALSE]
+  f <- rbind(on_f,f)
+  
+  return(f)
+}
 
 ToC_row = function(x,float=TRUE,minimal=1e-10)
 {
-	if (abs(x[".M"]) < minimal) x[".M"] = 0;
-	if (x[".M"] != 0) {
-		val = x[".M"]
-		x[".M"] = abs(x[".M"])
-		if (x[".M"] == 1) {
-			ret = NULL
-		} else {
-			if (float) {
-				ret = sprintf("%.10e",x[".M"])
-			} else {
-				ret = sprintf("%d",x[".M"])
-			}	
-#			ret = as.character(x[".M"])
-		}
-		v = names(x)
-		for (i in 1:length(x))
-		{
-			vv = v[i]
-			if (vv != ".M") {
-				h = "";
-				if (x[i] != 0) h = paste("pow(",vv,",",x[i],")")					
-				if (x[i] == 1) h = vv					
-				if (x[i] == 2) h = paste("(",vv,"*",vv,")",sep="")					
-				if (x[i] == -1) h = paste("(1/",vv,")",sep="")					
-				if (h != "") {
-					if (is.null(ret)) {ret = h;} else {
-						 ret = paste(ret,h,sep="*");
-					}
-				}
-			}
-		}
-		if (is.null(ret)) {ret = "1"}
-		ret = paste(ifelse(val>0," + "," - "), ret, sep="")
-	} else {
-		ret =""
-	}
-	ret
+  if (abs(x[".M"]) < minimal) x[".M"] = 0;
+  if (x[".M"] != 0) {
+    val = x[".M"]
+    x[".M"] = abs(x[".M"])
+    if (x[".M"] == 1) {
+      ret = NULL
+    } else {
+      if (float) {
+        ret = sprintf("%.10e",x[".M"])
+      } else {
+        ret = sprintf("%d",x[".M"])
+      }	
+      #			ret = as.character(x[".M"])
+    }
+    v = names(x)
+    for (i in 1:length(x))
+    {
+      vv = v[i]
+      if (vv != ".M") {
+        h = "";
+        if (x[i] != 0) h = paste("pow(",vv,",",x[i],")")					
+        if (x[i] == 1) h = vv					
+        if (x[i] == 2) h = paste("(",vv,"*",vv,")",sep="")					
+        if (x[i] == -1) h = paste("(1/",vv,")",sep="")					
+        if (h != "") {
+          if (is.null(ret)) {ret = h;} else {
+            ret = paste(ret,h,sep="*");
+          }
+        }
+      }
+    }
+    if (is.null(ret)) {ret = "1"}
+    ret = paste(ifelse(val>0," + "," - "), ret, sep="")
+  } else {
+    ret =""
+  }
+  ret
 }
 
 # #' @export
@@ -52,36 +62,37 @@ ToC_row = function(x,float=TRUE,minimal=1e-10)
 # #	oToC(p, minimal=minimal,float=float)
 # }
 
+
 #' @export
 ToC.pAlg = function(f,float=TRUE,min=1e-10)
 {
   f = f[abs(f$.M) > min,,drop=FALSE]
   if (nrow(f) < 1) {
-     			ret = "0"
-     		}
+    ret = "0"
+  }
   else {
-    f = f[order(abs(f$.M),decreasing=FALSE),,drop=FALSE]
+    # f = f[order(abs(f$.M),decreasing=FALSE),,drop=FALSE]
     lsnames = as.list(names(f))
     matrixa = data.matrix(f)
     if ((length(lsnames) > 1) && (lsnames[length(lsnames) - 1] ==".M")) 
-      {
+    {
       lsnames[length(lsnames) - 1] = lsnames[length(lsnames)]
       lsnames[length(lsnames)] = ".M"
       matrixa[, c(length(lsnames) - 1, length(lsnames))] <- matrixa[ ,c(length(lsnames),length(lsnames) - 1)]
     }
-    ret = fastMult(matrixa,lsnames)
+    ret = fastMult(matrixa,lsnames,float,Rugly_order)
   }
   ret
 }
 oToC = function(p,float=TRUE, minimal=1e-10)
 {
-	if (nrow(p) > 0) {
-		ret = apply(p,1,function(x) {ToC_row(x,float=float,minimal=minimal)})
-	} else { ret = "   0"; }
-	ret = paste(ret,collapse="");
-	if (substr(ret,2,2) == "+") substr(ret,2,2) = " ";
-	if (ret == "") { ret = "   0"; }
-	ret
+  if (nrow(p) > 0) {
+    ret = apply(p,1,function(x) {ToC_row(x,float=float,minimal=minimal)})
+  } else { ret = "   0"; }
+  ret = paste(ret,collapse="");
+  if (substr(ret,2,2) == "+") substr(ret,2,2) = " ";
+  if (ret == "") { ret = "   0"; }
+  ret
 }
 
 M.max = 10
@@ -108,20 +119,20 @@ C = function(x,y,...,eq=" = ",sep) {
 
 #' @export
 is.int = function(x,min=1e-6) {
-	abs(x - round(x)) < min
+  abs(x - round(x)) < min
 }
 
 #' @export
 divisible = function(x,y,min=1e-6) {
-	M.w = outer(x, y, "/")
-	M.h = outer(!is.int(x),is.int(y),"|")
-	is.int(M.w) & M.h
+  M.w = outer(x, y, "/")
+  M.h = outer(!is.int(x),is.int(y),"|")
+  is.int(M.w) & M.h
 }
 
 no.ones = function(tab,min=1e-6) {
-	x = tab$val
-	sel = pmin(abs(x - 1),abs(x),abs(x+1)) < min
-	tab[!sel,,drop=FALSE]
+  x = tab$val
+  sel = pmin(abs(x - 1),abs(x),abs(x+1)) < min
+  tab[!sel,,drop=FALSE]
 }
 
 # nToC = function(tab, bracket=FALSE,min=1e-6, second=FALSE, float=TRUE) {
@@ -248,12 +259,12 @@ no.ones = function(tab,min=1e-6) {
 # }
 
 
- 
+
 #' @export
 ToC.gvector = function(x,...) 
 { gapply(x, ToC, ..., simplify=TRUE) }
 #{
- # lsnames = as.list(names(x[[1]]))
+# lsnames = as.list(names(x[[1]]))
 #  matrixa = data.matrix(x[[1]])
 #  fastMult(matrixa,lsnames)
 #}

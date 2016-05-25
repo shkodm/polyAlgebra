@@ -5,27 +5,43 @@
 
 using namespace Rcpp;
 
-// dfToString
-std::string dfToString(NumericMatrix coeff, List lsnames);
-RcppExport SEXP polyAlgebra_dfToString(SEXP coeffSEXP, SEXP lsnamesSEXP) {
+// ugly_order
+NumericMatrix ugly_order(NumericMatrix x, Function f);
+RcppExport SEXP polyAlgebra_ugly_order(SEXP xSEXP, SEXP fSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< NumericMatrix >::type coeff(coeffSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Function >::type f(fSEXP);
+    __result = Rcpp::wrap(ugly_order(x, f));
+    return __result;
+END_RCPP
+}
+// dfToString
+std::string dfToString(NumericMatrix coeff_in, List lsnames, bool flt, Function foo);
+RcppExport SEXP polyAlgebra_dfToString(SEXP coeff_inSEXP, SEXP lsnamesSEXP, SEXP fltSEXP, SEXP fooSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericMatrix >::type coeff_in(coeff_inSEXP);
     Rcpp::traits::input_parameter< List >::type lsnames(lsnamesSEXP);
-    __result = Rcpp::wrap(dfToString(coeff, lsnames));
+    Rcpp::traits::input_parameter< bool >::type flt(fltSEXP);
+    Rcpp::traits::input_parameter< Function >::type foo(fooSEXP);
+    __result = Rcpp::wrap(dfToString(coeff_in, lsnames, flt, foo));
     return __result;
 END_RCPP
 }
 // fastMult
-std::string fastMult(NumericMatrix coeff, List lsnames);
-RcppExport SEXP polyAlgebra_fastMult(SEXP coeffSEXP, SEXP lsnamesSEXP) {
+std::string fastMult(NumericMatrix coeff, List lsnames, bool flt, Function foo);
+RcppExport SEXP polyAlgebra_fastMult(SEXP coeffSEXP, SEXP lsnamesSEXP, SEXP fltSEXP, SEXP fooSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< NumericMatrix >::type coeff(coeffSEXP);
     Rcpp::traits::input_parameter< List >::type lsnames(lsnamesSEXP);
-    __result = Rcpp::wrap(fastMult(coeff, lsnames));
+    Rcpp::traits::input_parameter< bool >::type flt(fltSEXP);
+    Rcpp::traits::input_parameter< Function >::type foo(fooSEXP);
+    __result = Rcpp::wrap(fastMult(coeff, lsnames, flt, foo));
     return __result;
 END_RCPP
 }
