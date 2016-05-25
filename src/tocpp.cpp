@@ -23,6 +23,7 @@ std::string dfToString(NumericMatrix coeff_in,List lsnames,bool flt, Function fo
 {
   std::string res = "";
   std::string ddot = "";
+  std::string ssign;
   NumericMatrix coeff = ugly_order(coeff_in,foo);
   int ncol = coeff.ncol();
   int nrow = coeff.nrow();
@@ -32,10 +33,13 @@ std::string dfToString(NumericMatrix coeff_in,List lsnames,bool flt, Function fo
     if (coeff(i,ncol - 1) != 0) 
     {
       std::string temp = "";
+      std::string ssign = "*";
       if ((is_int(coeff(i,ncol - 1))) && (flt)) ddot = ".";
       for (int j = 0; j < (ncol - 1); j++)
       {
         std::string coff = tostr(coeff(i,j));
+        if ((!temp.empty()) && (temp.at(0) == '/')) ssign = "";
+        else ssign = "*";
         if (is_int(coeff(i,j))){   
           switch (int(coeff(i,j))){
           case -1:
@@ -44,19 +48,19 @@ std::string dfToString(NumericMatrix coeff_in,List lsnames,bool flt, Function fo
           case 0:
             break;
           case 1:
-            temp = as<std::string>(lsnames[j]) + "*" + temp;
+            temp = as<std::string>(lsnames[j]) + ssign + temp;
             break;
           case 2:
-            temp = as<std::string>(lsnames[j]) + "*" + as<std::string>(lsnames[j]) + "*" + temp;
+            temp = as<std::string>(lsnames[j]) + "*" + as<std::string>(lsnames[j]) + ssign + temp;
             break;
           default:
-            temp = "pow(" + as<std::string> (lsnames[j])  + "," + coff + ")*" + temp;
+            temp = "pow(" + as<std::string> (lsnames[j])  + "," + coff + ")" + ssign + temp;
           break;
           }}
-        else temp = "pow(" + as<std::string> (lsnames[j])  + "," + coff + ")*" + temp;
+        else temp = "pow(" + as<std::string> (lsnames[j])  + "," + coff + ")" + ssign + temp;
       }
       if (tostr(fabs(coeff(i,ncol - 1))) == "1") {
-        if ((!temp.empty()) && (temp.at(0) != '/')) temp.erase(temp.end() - 1);
+        if ((!temp.empty()) && (temp.at(temp.size() - 1) == '*')) temp.erase(temp.end() - 1);
         if (temp.empty()) temp = tostr(coeff(i,ncol - 1)); 
         else if (temp.at(0) == '/') temp = tostr(coeff(i, ncol - 1)) + ddot + temp;
         else if ((coeff(i,ncol - 1 ) < 0)) temp = "-" + temp;
