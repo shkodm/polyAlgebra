@@ -4,8 +4,9 @@
 
 #include <math.h>
 
-#define tostr( x ) static_cast< std::ostringstream & >( \
-( std::ostringstream() << std::dec << x ) ).str()              
+#define tostr( x ) ((is_int(x))? (static_cast< std::ostringstream & >(\
+( std::ostringstream() << std::dec << x ) ).str()): (static_cast< std::ostringstream & >( \
+    ( std::ostringstream() << std::dec << std::setprecision(16) << x ) ).str()))
 
 #define is_int( x ) (fabs(x - round(x)) < 1e-10)
 
@@ -17,6 +18,7 @@ NumericMatrix ugly_order(NumericMatrix x, Function f)
   NumericMatrix res = f(x);
   return res;
 }
+//TODO: add check is decimal is finite, so unnecessary simplification to fraction can be avoided
 
 // [[Rcpp::export]]
 std::string dfToString(NumericMatrix coeff_in,List lsnames,bool flt, Function foo)
@@ -35,15 +37,16 @@ std::string dfToString(NumericMatrix coeff_in,List lsnames,bool flt, Function fo
       std::string temp = "";
       std::string ssign = "*";
       if ((is_int(coeff(i,ncol - 1))) && (flt)) ddot = ".";
+      else ddot = "";
       for (int j = 0; j < (ncol - 1); j++)
       {
         std::string coff = tostr(coeff(i,j));
-        if ((!temp.empty()) && (temp.at(0) == '/')) ssign = "";
+        if ((!temp.empty()) && (temp.at(0) == '/')) ssign = ""; //it is here, when it is empty
         else ssign = "*";
         if (is_int(coeff(i,j))){   
           switch (int(coeff(i,j))){
           case -1:
-            temp ="/" +  as<std::string>(lsnames[j]) + temp;
+            temp ="/" +  as<std::string>(lsnames[j]) + ssign + temp;
             break;
           case 0:
             break;
@@ -66,7 +69,11 @@ std::string dfToString(NumericMatrix coeff_in,List lsnames,bool flt, Function fo
         else if ((coeff(i,ncol - 1 ) < 0)) temp = "-" + temp;
       }
       else {
-        if ((!temp.empty()) && (temp.at(0) == '/')) temp = tostr(coeff(i, ncol - 1)) + ddot + temp;
+        if ((!temp.empty()) && (temp.at(0) == '/')) 
+        {
+          temp.erase(temp.end() - 1);
+          temp = tostr(coeff(i, ncol - 1)) + ddot + temp;
+        }
         else if (coeff(i,ncol - 1) < 0) temp ="-" + temp + tostr(fabs(coeff(i,ncol - 1))) + ddot;
         else temp = temp + tostr(coeff(i, ncol - 1)) + ddot;
       }
@@ -79,7 +86,7 @@ std::string dfToString(NumericMatrix coeff_in,List lsnames,bool flt, Function fo
           res.insert(0,temp);
         }
         else res.insert(0,(temp + " + "));
-      } else { if (res.length() == 0) res = temp;  
+      } else { if (res.empty()) res = temp;  
       else { 
         if (temp.at(0) == '-') {
           temp.insert(1," ");
@@ -98,14 +105,14 @@ std::string fastMult(NumericMatrix coeff,List lsnames,bool flt,Function foo)
   NumericMatrix remaind = clone(coeff);
   
   int mdiv_count = 0;
-  int divs = -1;
-  int ddivs = -1;
+  double divs = -1; 
+  double ddivs = -1;
   int eqzero = 0;
   int max_ind = 0;
   int temp_it = 0;
   int qmax_ind = 0;
   int dmax_ind = 0;
-  double curr_el; // keep all in C
+  double curr_el; 
   std::string sgn;
   int ncol = coeff.ncol();
   int nrow = coeff.nrow();
@@ -129,7 +136,7 @@ std::string fastMult(NumericMatrix coeff,List lsnames,bool flt,Function foo)
       if (is_int(curr_el)) 
       {
         
-        if ((int(curr_el) != 0) && ((int(round(curr_el)) % divsor) == 0)) temp_it++; 
+        if ((int(curr_el) != 0) && (is_int(curr_el/divsor))) temp_it++; 
       }
       else 
       {
@@ -147,6 +154,22 @@ std::string fastMult(NumericMatrix coeff,List lsnames,bool flt,Function foo)
       ddivs = divsor;
     }
   }
+  
+  double rdivs = -1;
+  int rmax_ind = -1;
+  for (int i = 0; i < nrow; i++)
+  {
+       temp_it = 0;
+       if ((std::fabs(coeff(i, ncol - 1 )) != 1.) && (coeff(i, ncol - 1 ) != 0)) {
+         for (int j = 0; j < nrow; j++) {
+           if ((coeff(j, ncol - 1 ) != 0) && (is_int(coeff(j, ncol - 1)/coeff(i, ncol - 1))) && (is_int(coeff(j, ncol - 1)) ? (is_int(coeff(i,ncol - 1))): (!is_int(coeff(i, ncol - 1))))) temp_it++;} }
+       if ((temp_it >= rmax_ind) && (temp_it > 0))
+       {
+         rdivs = coeff(i, ncol - 1);
+         rmax_ind = temp_it;
+       }
+  }
+     
   
   mdiv_count = 0;
   temp_it = 0;
@@ -169,17 +192,24 @@ std::string fastMult(NumericMatrix coeff,List lsnames,bool flt,Function foo)
     }
   }
   
+ bool self_div = ((rmax_ind > 1) && (rmax_ind > qmax_ind) && (rmax_ind >= dmax_ind));
+///self_div = false; // if something is slightly off
   if (qmax_ind >= dmax_ind) divs = ddivs;
+  if (self_div)
+  {
+    dmax_ind = rmax_ind;
+    divs = std::fabs(rdivs);
+  }
   if ((qmax_ind >= temp_it) || (dmax_ind >= temp_it)) {
-    if ((divs != -1) && ((dmax_ind != 1) || (qmax_ind > 0))) {
+    if ((std::fabs(divs) != 1) && ((dmax_ind != 1) || (qmax_ind > 0))) {
       for (int j = 0; j < nrow; j++)
       {
         double curr_el = coeff(j, ncol - 1);
-        if ((curr_el != 0.) && ((((int(round(curr_el)) % divs == 0)) && (dmax_ind > qmax_ind) && (is_int(curr_el)))  
+        if ((curr_el != 0.) && ((((is_int(curr_el/divs))) && (dmax_ind > qmax_ind) && (is_int(curr_el)) && (!self_div))  // <- i'm not proud of this
                                   ||  (((is_int(curr_el*divs) ) && (qmax_ind >= dmax_ind) 
-                                          && (!(is_int(curr_el)) ))))) 
+                                          && (!(is_int(curr_el))) && (!self_div))) || ((self_div) && (is_int(curr_el/divs))))) 
         {
-          if (dmax_ind > qmax_ind ) coeff(j, ncol - 1) = coeff(j, ncol - 1) / divs;
+          if ((dmax_ind > qmax_ind ) || (self_div)) coeff(j, ncol - 1) = coeff(j, ncol - 1) / divs;
           else coeff(j, ncol - 1) = coeff(j, ncol - 1) * divs;
           remaind(j,ncol - 1) = 0;
           eqzero++;
@@ -191,10 +221,19 @@ std::string fastMult(NumericMatrix coeff,List lsnames,bool flt,Function foo)
       }
       std::string d_dot ="";
       if ((is_int(divs)) && (flt)) d_dot = ".";
-      if (dmax_ind > qmax_ind) sgn = "*";
+      if ((dmax_ind > qmax_ind) || (self_div)) sgn = "*";
       else sgn = "/";
       if (qmax_ind != 1) lsnames(ncol - 1) = ".o";
-      if (eqzero != nrow)  return (l_bracket + fastMult(remaind,lsnames,flt,foo) + " + " + fastMult(coeff,lsnames,flt,foo) + sgn +  tostr(divs) + d_dot + r_bracket); 
+      if (eqzero == nrow - 1) 
+      {
+        std::string  singleDivs = fastMult(coeff,lsnames,flt,foo);
+        if (singleDivs.at(0) == '-') {
+          singleDivs.insert(1," ");
+          return (l_bracket + fastMult(remaind,lsnames,flt,foo) + " " + singleDivs + sgn +  tostr(divs) + d_dot + r_bracket);
+        }
+        else return (l_bracket + fastMult(remaind,lsnames,flt,foo) + " + " + singleDivs + sgn +  tostr(divs) + d_dot + r_bracket); 
+      }
+      else if (eqzero != nrow)  return (l_bracket + fastMult(remaind,lsnames,flt,foo) + " + " + fastMult(coeff,lsnames,flt,foo) + sgn +  tostr(divs) + d_dot + r_bracket); 
       else return (fastMult(coeff,lsnames,flt,foo) + sgn + tostr(divs) + d_dot);
     }
     else return (l_bracket + dfToString(coeff,lsnames,flt,foo) + r_bracket); 
@@ -228,7 +267,16 @@ std::string fastMult(NumericMatrix coeff,List lsnames,bool flt,Function foo)
     if (temp_it < 0) sgn = "/";
     else sgn = "*";
     lsnames(ncol - 1) = ".o";
-    if (eqzero != nrow) return  ( l_bracket + fastMult(remaind,lsnames,flt,foo) +  " + " + fastMult(coeff,lsnames,flt,foo)  + sgn + as<std::string>(lsnames[max_ind]) + r_bracket);
+    if (eqzero == nrow - 1) 
+    {
+      std::string  singleDivs = fastMult(coeff,lsnames,flt,foo);
+      if (singleDivs.at(0) == '-') {
+        singleDivs.insert(1," ");
+        return (l_bracket + fastMult(remaind,lsnames,flt,foo) + " " + singleDivs + sgn +  as<std::string>(lsnames[max_ind]) + r_bracket);
+      }
+      else return (l_bracket + fastMult(remaind,lsnames,flt,foo) + " + " + singleDivs + sgn +  as<std::string>(lsnames[max_ind]) + r_bracket); 
+    }
+    else if (eqzero != nrow) return  ( l_bracket + fastMult(remaind,lsnames,flt,foo) +  " + " + fastMult(coeff,lsnames,flt,foo)  + sgn + as<std::string>(lsnames[max_ind]) + r_bracket);
     else return  (fastMult(coeff,lsnames,flt,foo) + sgn + as<std::string>(lsnames[max_ind])); 
   } 
 }
