@@ -2,17 +2,9 @@
 #' @export
 ToC = function (x, ...) 
   UseMethod("ToC")
-
-Rugly_order <- function(fi) {
-  
-  f <- subset(fi, (abs(fi[,ncol(fi)]) - 1) > 1e-10)
-  on_f <- subset(fi, (abs(fi[,ncol(fi)]) -1) < 1e-10 )
-  f <- f[order(abs(f[,ncol(f)]),decreasing=FALSE),,drop=FALSE]
-  on_f <- on_f[rev(order(0*abs(on_f[,ncol(on_f)]),decreasing=FALSE)),,drop=FALSE]
-  f <- rbind(on_f,f)
-  
-  return(f)
-}
+#' @export
+ToC_old = function (x, ...) 
+  UseMethod("ToC_old")
 
 ToC_row = function(x,float=TRUE,minimal=1e-10)
 {
@@ -55,12 +47,12 @@ ToC_row = function(x,float=TRUE,minimal=1e-10)
   ret
 }
 
-# #' @export
-# ToC.pAlg = function(p,float=TRUE, minimal=1e-10)
-# {
-# 	nToC(p, min=minimal,float=float)
+#' @export
+ToC_old.pAlg = function(p,float=TRUE, minimal=1e-10)
+{
+ 	nToC(p, min=minimal,float=float)
 # #	oToC(p, minimal=minimal,float=float)
-# }
+}
 
 
 #' @export
@@ -71,8 +63,7 @@ ToC.pAlg = function(f,float=TRUE,min=1e-10)
     ret = "0"
   }
   else {
-    # f = f[order(abs(f$.M),decreasing=FALSE),,drop=FALSE]
-    lsnames = as.list(names(f))
+   lsnames = as.list(names(f))
     matrixa = data.matrix(f)
     if ((length(lsnames) > 1) && (lsnames[length(lsnames) - 1] ==".M")) 
     {
@@ -80,7 +71,7 @@ ToC.pAlg = function(f,float=TRUE,min=1e-10)
       lsnames[length(lsnames)] = ".M"
       matrixa[, c(length(lsnames) - 1, length(lsnames))] <- matrixa[ ,c(length(lsnames),length(lsnames) - 1)]
     }
-    ret = fastMult(matrixa,lsnames,float,Rugly_order)
+    ret = fastMult(matrixa,lsnames,float,seq(0,nrow(matrixa) - 1))
   }
   ret
 }
@@ -135,142 +126,144 @@ no.ones = function(tab,min=1e-6) {
   tab[!sel,,drop=FALSE]
 }
 
-# nToC = function(tab, bracket=FALSE,min=1e-6, second=FALSE, float=TRUE) {
-# 	tab = tab[abs(tab$.M) > min,,drop=FALSE]
-# 	if (nrow(tab) < 1) {
-# 		if (second) {
-# 			ret = " + 0"
-# 		} else {
-# 			ret = "0"
-# 		}
-# 	} else {
-# 		tab = tab[order(tab$.M,decreasing=TRUE),,drop=FALSE]
-# 		i1=colSums(tab > 0)
-# 		i2=colSums(tab < 0)
-# 		Md = data.frame(
-# 			val = c(1:36,1/(1:36)),
-# 			str = {
-# 				if (float) {
-# 					str = paste(c(1:36,1:36),rep(c(".","."),each=36),sep="")
-# 				} else {
-# 					str = paste(c(1:36,1:36),rep(c("","."),each=36),sep="")
-# 				}
-# 			},
-# 			positive = rep(c(TRUE,FALSE),each=36)
-# 		)
-# 		Md = Md[c(36:1,1:36+36),]
-# 		Md.val = tab$.M
-# 		Md = rbind(Md, data.frame(
-# 			val = Md.val,
-# 			str = paste(tab$.M,"",sep=""),
-# 			positive = TRUE
-# 		))
-# 		Md = no.ones(Md)
-# 		if (nrow(Md) > 0) {
-# 			i3t = divisible(tab$.M, Md$val)
-# 			i3 = colSums(i3t)
-# 		} else {
-# 			i3 = 0
-# 		}
-# 		i1[".M"] = -1
-# 		i2[".M"] = -1
-# 		if (any(c(i1,i2,i3) > 0)) {
-# 			wh = which.max(c(max(i3),max(i2),max(i1)))
-# 			
-# 			if (wh == 1) {
-# 				i = which.max(i3)
-# 				sel = i3t[,i]
-# 				positive = Md$positive[i]
-# 				ntab = tab[sel,,drop=FALSE]
-# 				ntab$.M = ntab$.M / Md$val[i]
-# 				pull = Md$str[i]
-# 			} else if (wh == 3) {
-# 				i = which.max(i1)
-# 				sel = tab[,i] > 0
-# 				positive=TRUE
-# 				ntab = tab[sel,,drop=FALSE]
-# 				ntab[,i] = ntab[,i]-1
-# 				pull = names(tab)[i]
-# 			} else if (wh == 2) {
-# 				i = which.max(i2)
-# 				sel = tab[,i] < 0
-# 				positive=FALSE
-# 				ntab = tab[sel,,drop=FALSE]
-# 				ntab[,i] = ntab[,i]+1
-# 				pull = names(tab)[i]
-# 			}
-# 			if (any(!sel)) {
-# 				v1 = nToC(ntab,bracket=T,second=TRUE,float=float)
-# 			} else {
-# 				v1 = nToC(ntab,bracket=T,second=second,float=float)
-# 			}
-# 			if (positive) {
-# 				if (v1 == "1") {
-# 					v1 = paste(pull,sep="")
-# 				} else if (v1 == " + 1") {
-# 					v1 = paste(" + ",pull,sep="")
-# 				} else if (v1 == "-1") {
-# 					v1 = paste("-",pull,sep="")
-# 				} else if (v1 == " - 1") {
-# 					v1 = paste(" - ",pull,sep="")
-# 				} else {
-# 					v1 = paste(v1,"*",pull,sep="")
-# 				}
-# 			} else {
-# 				v1 = paste(v1,"/",pull,sep="")
-# 			}
-# 			if (any(!sel)) {
-# 				if (bracket) {
-# 					v2 = nToC(tab[!sel,,drop=FALSE],second=FALSE,float=float)
-# 					if (second) {
-# 						ret = paste(" + ( ",v2,v1," )",sep="")
-# 					} else {
-# 						ret = paste("( ",v2,v1," )",sep="")
-# 					}
-# 				} else {
-# 					v2 = nToC(tab[!sel,,drop=FALSE],second=second,float=float)
-# 					ret = paste(v2,v1,sep="")
-# 				}
-# 			} else {
-# 				ret = v1
-# 			}
-# 		} else {
-# 			v = sum(tab$.M)
-# 			if (abs(round(v) - v) < min) {
-# 				v = round(v)
-# 				ret = sprintf("%d",abs(v))
-# 			} else {
-# 				ret = sprintf("%.16f",abs(v))
-# 			}
-# 			if (second) {
-# 				if (v < 0) {
-# 					ret = paste(" - ",ret,sep="")
-# 				} else {
-# 					ret = paste(" + ",ret,sep="")
-# 				}
-# 			} else {
-# 				if (v < 0) {
-# 					ret = paste("-",ret,sep="")
-# 				} 
-# 			}
-# 		}
-# 	}
-# 	ret
-# }
+ nToC = function(tab, bracket=FALSE,min=1e-6, second=FALSE, float=TRUE) {
+ 	tab = tab[abs(tab$.M) > min,,drop=FALSE]
+ 	if (nrow(tab) < 1) {
+ 		if (second) {
+ 			ret = " + 0"
+ 		} else {
+ 			ret = "0"
+ 		}
+ 	} else {
+ 		tab = tab[order(tab$.M,decreasing=TRUE),,drop=FALSE]
+ 		i1=colSums(tab > 0)
+ 		i2=colSums(tab < 0)
+ 		Md = data.frame(
+ 			val = c(1:36,1/(1:36)),
+ 			str = {
+ 				if (float) {
+ 					str = paste(c(1:36,1:36),rep(c(".","."),each=36),sep="")
+ 				} else {
+					str = paste(c(1:36,1:36),rep(c("","."),each=36),sep="")
+ 				}
+ 			},
+ 			positive = rep(c(TRUE,FALSE),each=36)
+ 		)
+ 		Md = Md[c(36:1,1:36+36),]
+ 		Md.val = tab$.M
+ 		Md = rbind(Md, data.frame(
+ 			val = Md.val,
+ 			str = paste(tab$.M,"",sep=""),
+ 			positive = TRUE
+ 		))
+ 		Md = no.ones(Md)
+ 		if (nrow(Md) > 0) {
+ 			i3t = divisible(tab$.M, Md$val)
+ 			i3 = colSums(i3t)
+ 		} else {
+ 			i3 = 0
+ 		}
+ 		i1[".M"] = -1
+ 		i2[".M"] = -1
+ 		if (any(c(i1,i2,i3) > 0)) {
+ 			wh = which.max(c(max(i3),max(i2),max(i1)))
+ 			
+ 			if (wh == 1) {
+ 				i = which.max(i3)
+ 				sel = i3t[,i]
+ 				positive = Md$positive[i]
+ 				ntab = tab[sel,,drop=FALSE]
+ 				ntab$.M = ntab$.M / Md$val[i]
+ 				pull = Md$str[i]
+ 			} else if (wh == 3) {
+ 				i = which.max(i1)
+ 				sel = tab[,i] > 0
+ 				positive=TRUE
+ 				ntab = tab[sel,,drop=FALSE]
+ 				ntab[,i] = ntab[,i]-1
+ 				pull = names(tab)[i]
+ 			} else if (wh == 2) {
+ 				i = which.max(i2)
+ 				sel = tab[,i] < 0
+ 				positive=FALSE
+ 				ntab = tab[sel,,drop=FALSE]
+ 				ntab[,i] = ntab[,i]+1
+ 				pull = names(tab)[i]
+ 			}
+ 			if (any(!sel)) {
+ 				v1 = nToC(ntab,bracket=T,second=TRUE,float=float)
+ 			} else {
+ 				v1 = nToC(ntab,bracket=T,second=second,float=float)
+ 			}
+ 			if (positive) {
+ 				if (v1 == "1") {
+ 					v1 = paste(pull,sep="")
+ 				} else if (v1 == " + 1") {
+ 					v1 = paste(" + ",pull,sep="")
+ 				} else if (v1 == "-1") {
+ 					v1 = paste("-",pull,sep="")
+ 				} else if (v1 == " - 1") {
+ 					v1 = paste(" - ",pull,sep="")
+ 				} else {
+ 					v1 = paste(v1,"*",pull,sep="")
+ 				}
+ 			} else {
+ 				v1 = paste(v1,"/",pull,sep="")
+ 			}
+ 			if (any(!sel)) {
+ 				if (bracket) {
+ 					v2 = nToC(tab[!sel,,drop=FALSE],second=FALSE,float=float)
+ 					if (second) {
+ 						ret = paste(" + ( ",v2,v1," )",sep="")
+ 					} else {
+ 						ret = paste("( ",v2,v1," )",sep="")
+ 					}
+ 				} else {
+ 					v2 = nToC(tab[!sel,,drop=FALSE],second=second,float=float)
+ 					ret = paste(v2,v1,sep="")
+ 				}
+ 			} else {
+ 				ret = v1
+ 			}
+ 		} else {
+ 			v = sum(tab$.M)
+ 			if (abs(round(v) - v) < min) {
+ 				v = round(v)
+ 				ret = sprintf("%d",abs(v))
+ 			} else {
+ 				ret = sprintf("%.16f",abs(v))
+ 			}
+ 			if (second) {
+ 				if (v < 0) {
+ 					ret = paste(" - ",ret,sep="")
+ 				} else {
+ 					ret = paste(" + ",ret,sep="")
+ 				}
+ 			} else {
+ 				if (v < 0) {
+ 					ret = paste("-",ret,sep="")
+ 				} 
+ 			}
+ 		}
+ 	}
+ 	ret
+ }
 
 
 
 #' @export
 ToC.gvector = function(x,...) 
 { gapply(x, ToC, ..., simplify=TRUE) }
-#{
-# lsnames = as.list(names(x[[1]]))
-#  matrixa = data.matrix(x[[1]])
-#  fastMult(matrixa,lsnames)
-#}
+
+ 
+#' @export
+ToC_old.gvector = function(x,...) 
+ { gapply(x, ToC_old, ..., simplify=TRUE) }
 
 #' @export
 ToC.numeric = function(x) {as.character(x)}
+#' @export
+ToC_old.numeric = function(x) {as.character(x)}
 
 
 
