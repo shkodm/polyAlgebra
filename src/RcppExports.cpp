@@ -5,6 +5,18 @@
 
 using namespace Rcpp;
 
+// poly_aggregate
+NumericVector poly_aggregate(NumericMatrix a, NumericVector dotM);
+RcppExport SEXP polyAlgebra_poly_aggregate(SEXP aSEXP, SEXP dotMSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericMatrix >::type a(aSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type dotM(dotMSEXP);
+    __result = Rcpp::wrap(poly_aggregate(a, dotM));
+    return __result;
+END_RCPP
+}
 // fastMult
 std::string fastMult(NumericMatrix coeff, List lsnames, bool flt, NumericVector erows);
 RcppExport SEXP polyAlgebra_fastMult(SEXP coeffSEXP, SEXP lsnamesSEXP, SEXP fltSEXP, SEXP erowsSEXP) {
